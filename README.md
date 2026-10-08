@@ -104,13 +104,36 @@ At the default rate, 1,000 numbers take about 10 minutes (1000 ÷ 5 × 3 s).
 
 Results can be filtered (All / WhatsApp Available / Not Available / Invalid / Errors) and searched. They are shown 50 per page, as a table on desktop and as cards on mobile, so large lists don't freeze the browser.
 
+**Copying numbers** (always the normalized E.164 form, never the original text):
+
+- 📋 next to every normalized number copies that number. The icon turns into ✓ with "Copied!" for about 1.5 s. On *Available* rows it is highlighted in green.
+- **Copy Valid Numbers (N)** copies every WhatsApp-available number, one per line, without duplicates. It's disabled when N = 0.
+- **Copy All Numbers (N)** copies every successfully normalized number (invalid and empty values excluded), one per line, without duplicates.
+- If the browser blocks clipboard access, you'll see "Unable to copy. Please copy manually." The app keeps working.
+
 ## 10. CSV format
 
 - Delimiter is auto-detected (`,` `;` tab `|`). A UTF-8 BOM is handled.
-- **Single column**: used as the number column, with or without a header.
-- **Several columns**: the number column is detected from these header names:
-  `phone`, `phone_number`, `mobile`, `mobile_number`, `number`, `whatsapp`, `whatsapp_number`, `contact` (plus variants like `cell`, `tel`, `msisdn`).
-  If no header matches, the column with the most phone-like values is suggested. You can change it with the **Phone number column** selector.
+**Import happens in two steps, and only the phone-number column is ever imported.**
+
+1. **Upload**: the file is parsed and analyzed. Nothing is imported or checked yet.
+2. **Select the column**: a dialog shows what was detected, lets you pick or change the column, and previews **only that column** (with each number's detected country), e.g. "1,245 numbers found". Nothing is imported until you click **Import 1,245 Numbers**. After import, **Change column** reopens the dialog.
+
+How the column is detected (from both header names and values):
+
+| Situation | What you see |
+|---|---|
+| Exactly one column whose header looks like a phone column **and** whose values look like phone numbers | "Phone column detected: phone" (pre-selected) |
+| A single-column file with phone-like values | That column is pre-selected |
+| No matching header, but one column's values look like phone numbers (e.g. `contact_data`) | "Possible phone column detected: contact_data" (pre-selected, please confirm) |
+| Several plausible columns (e.g. `phone` and `mobile`) | No guess: you choose |
+| Nothing looks like phone numbers | "No phone-number column detected. Please select the column containing phone numbers." |
+| The chosen column has no usable numbers | "No valid phone numbers found in this column." (import disabled) |
+
+Header names are matched ignoring case, spaces, hyphens, underscores and camelCase: `phone`, `Phone Number`, `phone-number`, `phoneNumber`, `mobile`, `mobile_number`, `number`, `contact`, `whatsapp`, `WhatsApp Number`, `cell`, `tel`, `telephone`, `msisdn`, and longer names containing *phone*, *mobile*, *whatsapp*, *telephone* or *msisdn*. A matching header whose values aren't phone numbers is not trusted.
+
+Other columns (names, emails, addresses…) are never added to the list and never saved in LocalStorage. They stay in memory only while the page is open, so you can switch the column.
+
 - The CSV row number of each number is kept and shown in the table.
 - No country needs to be chosen. Every row's country is detected from its own `+` country code (`00` international prefixes also work), so mixed-country files are fine. Rows without a country code are marked invalid.
 - Limits: `NEXT_PUBLIC_MAX_CSV_MB` (default 5 MB) and `NEXT_PUBLIC_MAX_NUMBERS` rows (default 20,000).
