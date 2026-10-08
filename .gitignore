@@ -1,0 +1,18 @@
+node_modules/
+.next/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# env files (keep the example)
+.env
+.env.*
+!.env.example
+
+# WhatsApp session data — NEVER commit
+.wa-session/
+wa-session/
+
+npm-debug.log*
+.DS_Store
